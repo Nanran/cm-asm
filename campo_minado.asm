@@ -2,8 +2,8 @@
 #blue = 0x000000FF
 #red = 0x00FF0000
 #green = 0x0000FF00
-#width = 512
-#uma linha = 2048 em endere�os
+#width = 256
+#uma linha = 1024 em endere�os
 
 j main
 
@@ -12,7 +12,7 @@ paint_pixel:        # paint_pixel(a0=x,a1=y,a2=rgb)
 	addi $t1, $a1, 0
 	addi $t2, $a2, 0
   
-	sll $t1, $t1, 11        # y' = 4*(y*512)
+	sll $t1, $t1, 10        # y' = 4*(256*y)
 	sll $t0, $t0, 2         # x' = 4*x
 	add $t3, $t1, $t0       # dslc = x' + y'
 	sw $t2, 0x10010000($t3) # *(addr + dslc) = rgb
@@ -25,7 +25,7 @@ paint_hline: 		#paint_hline(a0=x, a1=y, a2=len, a3=rgb)
 	addi $t2, $a2, 0
 	addi $t3, $a3, 0
   
-	sll $t5, $t1, 11     # y' = 2048*y'
+	sll $t5, $t1, 10     # y' = 4*(256*y)
 	sll $t4, $t0, 2      # x' = 4*x
 	add $t6, $t4, $t5    # dslc = x' + y'
   
@@ -49,7 +49,7 @@ paint_hline: 		#paint_hline(a0=x, a1=y, a2=len, a3=rgb)
 #  lw $t1, 12($sp)         # y
 #  lw $t0, 16($sp)         # x
 #  sll $t2, $t2, 2         # end = 4*len 
-#  mul $t1, $t1, 512       # y' = 4*(y*512/4)
+#  mul $t1, $t1, 512       # y' = 4*(y*256)
 #  #sll $t0, $t0, 2         # x' = 4*x
 #  while_0:
 #    beq $t0, $t2, end_0     # while (x' != end) {
@@ -69,9 +69,9 @@ paint_vline: 		#paint_vline(a0=x, a1=y, a2=len, a3=rgb)
 	addi $t3, $a3, 0
   
 	add $t2, $t2, $t1	#limite = len + y
-	sll $t2, $t2, 11	#limiteDeDeslocamento = limite*2048
+	sll $t2, $t2, 10	#limiteDeDeslocamento = 4*(256*limite)
   
-	sll $t5, $t1, 11	  # y' = 2048*y
+	sll $t5, $t1, 10	# y' = 4*(256*y)
 	sll $t4, $t0, 2         # x' = 4*x
 	add $t6, $t4, $t5       # dslc = x' + y'
   	
@@ -124,9 +124,9 @@ paint_dline_direita: 		#paint_dline(a0=x, a1=y, a2=len, a3=rgb)
 	addi $t3, $a3, 0
   
 	add $t2, $t2, $t1	#limite = len + y
-	sll $t2, $t2, 11	#limiteDeDeslocamento = limite*2048
+	sll $t2, $t2, 10	#limiteDeDeslocamento = 4*(256*limite)
   
-	sll $t5, $t1, 11	  # y' = 2048*y
+	sll $t5, $t1, 10	# y' = 4*(256*y)
 	sll $t4, $t0, 2         # x' = 4*x
 	add $t6, $t4, $t5       # dslc = x' + y'
   	
@@ -149,9 +149,9 @@ paint_dline_esquerda: 		#paint_dline(a0=x, a1=y, a2=len, a3=rgb)
 	addi $t3, $a3, 0
   
 	add $t2, $t2, $t1	#limite = len + y
-	sll $t2, $t2, 11	#limiteDeDeslocamento = limite*2048
+	sll $t2, $t2, 10	#limiteDeDeslocamento = 4*(256*limite)
   
-	sll $t5, $t1, 11	  # y' = 2048*y
+	sll $t5, $t1, 10	  # y' = 4*(256*y)
 	sll $t4, $t0, 2         # x' = 4*x
 	add $t6, $t4, $t5       # dslc = x' + y'
   	
@@ -198,6 +198,7 @@ fill_square:    #fill_square(a0=x, a1=y, a2=side, a3=rgb)
 	addi $t1, $a1, 0
 	addi $t2, $a2, 0
 	addi $t3, $a3, 0
+	
 	
 	
 
