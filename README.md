@@ -6,9 +6,11 @@
 
 - Sub-rotina para desenhar mina [DONE]
 
-- Sub-rotina para gerar int aleatorio num determinado range 0->x
+- Sub-rotina para gerar int aleatorio num determinado range 0->x [DONE]
 
-- Gerador de campo minado randomico
+- Gerador de campo minado randomico [DONE]
+
+- Sub-rotina para definir quantas minas cada local vago tem em volta de sí mesmo
 
 - Sub-rotina para atualizar tela e desenhar o campo minado atual
 
