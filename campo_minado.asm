@@ -4,6 +4,10 @@
 #green = 0x0000FF00
 #width = 256
 #uma linha = 1024 em endere?os
+#seed = $s0
+#incidencia de minas = $s1 (quanto maior, menor a chance te minas aparecerem)
+#
+#valor que representa uma mina = 666 = $s3
 
 #sumario
 #paint pixel: 27
@@ -22,6 +26,10 @@
 #paint_seven: 669
 #paint_eight: 714
 #paint_asterisc: 816
+#rand_in_default_range: 907
+#pos_to_mine_adress: 915
+#place_mine_or_not: 923
+#place_mines_12_12: 940
 
 j main
 
@@ -896,6 +904,68 @@ paint_eight: # paint_eight($a0=x,$a1=y,$a2=rgb)
   	
   	jr $ra
 
+rand_in_default_range: #rand_in_range(($a0)-1=limite) retorna $v0 = int randomico
+	li $v0, 42
+	addi $a1, $s1, 0
+	addi $a0, $s0, 0
+	syscall
+	addi $v0, $a0, 0
+	jr $ra
+
+pos_to_mine_adress: #a0 = x, $a1 = y, $v0 = endereço
+	sll $a0, $a0, 2
+	mul $a1, $a1, 12
+	sll $a1, $a1, 2
+	add $v0, $s2, $a0
+	add $v0, $v0, $a1
+	jr $ra
+
+place_mine_or_not: #$a0 = x, $a1 = y
+	sw $ra, 0($sp)
+	addi $sp, $sp, -4
+	jal pos_to_mine_adress
+	lw $ra, 4($sp)
+	addi $sp, $sp, 4
+	addi $t0, $v0, 0 #t0 = endereço da mina
+	sw $ra, 0($sp)
+	addi $sp, $sp, -4
+	jal rand_in_default_range
+	lw $ra, 4($sp)
+	addi $sp, $sp, 4
+	addi $t1, $v0, 0 #t1 = resultado randomico < $s1
+	beq $t1, 0, place_mine
+		sw $zero, 0($t0)
+		j end_place_mine
+	place_mine:
+		sw $s3, 0($t0)
+	end_place_mine:
+	jr $ra
+
+place_mines_12_12: #planta as minas (visualizar no bitmap display)
+	
+	addi $t1, $zero, 0
+	mines_while_0:
+		li $t0, 0
+		mines_while_1:
+			sw $ra, 0($sp)
+			sw $t0, -4($sp)
+			sw $t1, -8($sp)
+			addi $sp, $sp, -12
+			addi $a0, $t0, 0
+			addi $a1, $t1, 0
+			jal place_mine_or_not
+			lw $ra, 12($sp)
+			lw $t0, 8($sp)
+			lw $t1, 4($sp)
+			addi $sp, $sp, 12
+			
+			addi $t0, $t0, 1
+		bne $t0, 12, mines_while_1
+		addi $t1, $t1, 1
+	bne $t1, 12, mines_while_0
+	
+	jr $ra
+
 #versao recursiva: utilizar como modelo para sub-rotinas recursivas
 #paint_vline:
 #  addi $t0, $a0, 0
@@ -927,77 +997,9 @@ paint_eight: # paint_eight($a0=x,$a1=y,$a2=rgb)
 #  jr $ra
 
 main:
-	addi $a0, $zero, 20   
-	addi $a1, $zero, 6   
-	addi $a2, $zero, 200   
-	addi $a3, $zero, 0x000000FF #blue
-	jal paint_vline 
+	li $s0, 1337 #define a semente
+	li $s1, 3 #define a incidencia de minas (1 em em cada dez)
+	li $s2, 0x10000000 #define inicio do campo
+	li $s3, 666
 	
-	addi $a0, $zero, 20   
-	addi $a1, $zero, 6   
-	addi $a2, $zero, 200   
-	addi $a3, $zero, 0x0000FF00 #green
-	jal paint_hline
-	
-	addi $a0, $zero, 20   
-	addi $a1, $zero, 206   
-	addi $a2, $zero, 200   
-	addi $a3, $zero, 0x00FFFF00 
-	jal paint_hline
-	
-	addi $a0, $zero, 20   
-	addi $a1, $zero, 6   
-	addi $a2, $zero, 200   
-	addi $a3, $zero, 0x00FF0000 #red
-	jal paint_dline_direita
-	
-	addi $a0, $zero, 220   
-	addi $a1, $zero, 6   
-	addi $a2, $zero, 200   
-	addi $a3, $zero, 0x00FF00FF 
-	jal paint_dline_esquerda
-  
-	addi $a0, $zero, 1   
-	addi $a1, $zero, 1   
-	addi $a2, $zero, 0x00FFFFFF
-	jal paint_one
-	
-	addi $a0, $zero, 1   
-	addi $a1, $zero, 11   
-	addi $a2, $zero, 0x00FFFFFF
-	jal paint_two
-	
-	addi $a0, $zero, 1   
-	addi $a1, $zero, 21   
-	addi $a2, $zero, 0x00FFFFFF
-	jal paint_three
-	
-	addi $a0, $zero, 1   
-	addi $a1, $zero, 31   
-	addi $a2, $zero, 0x00FFFFFF
-	jal paint_four
-	
-	addi $a0, $zero, 1   
-	addi $a1, $zero, 41   
-	addi $a2, $zero, 0x00FFFFFF
-	jal paint_five
-	
-	addi $a0, $zero, 1   
-	addi $a1, $zero, 51   
-	addi $a2, $zero, 0x00FFFFFF
-	jal paint_six
-	
-	addi $a0, $zero, 1   
-	addi $a1, $zero, 61   
-	addi $a2, $zero, 0x00FFFFFF
-	jal paint_seven
-	
-	addi $a0, $zero, 1   
-	addi $a1, $zero, 71   
-	addi $a2, $zero, 0x00FFFFFF
-	jal paint_eight
-	
-	addi $a0, $zero, 1   
-	addi $a1, $zero, 81   
-	addi $a2, $zero, 0x00FF0000
-	jal paint_asterisc
+	jal place_mines_12_12
