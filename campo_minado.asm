@@ -194,6 +194,29 @@ fill_square:    #fill_square(a0=x, a1=y, a2=side, a3=rgb)
 	addi $t1, $a1, 0
 	addi $t2, $a2, 0
 	addi $t3, $a3, 0
+	
+	add $t2, $t2, $t1  # limy = y + side
+	sll $t2, $t2, 10   # limy' = 4*(256*limy) 
+	
+	sll $t1, $t1, 10   # y' = 4*(256*y)
+	
+	while_4:
+		beq $t1, $t2, end_4
+		add $t4, $a2, $a0     # limx = x + side
+		sll $t4, $t4, 2        # limx' = 4*limx
+		addi $t0, $a0, 0       
+ 		sll $t0, $t0, 2        # x' = 4*x
+		while_5:
+			beq $t0, $t4, end_5
+			add $t5, $t1, $t0   # dslc = x' + y' 
+			sw $t3, 0x10010000($t5)
+			add $t0, $t0, 4
+			j while_5
+		end_5:
+		addi $t1, $t1, 1024
+		j while_4
+	end_4:
+	jr $ra
 
 paint_one: # paint_one($a0=x,$a1=y,$a2=rgb)
 	addi $t0, $a0, 0
