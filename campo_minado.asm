@@ -16,7 +16,7 @@
 #paint_paint_dline_direita: 107
 #paint_dline_esquerda: 122
 #paint_square: 148
-#fill_square(imcompleta): 170
+#fill_square: 170
 #paint_one: 181
 #paint_two: 230
 #paint_three: 313
@@ -989,6 +989,40 @@ place_mines_12_12: #planta as minas (visualizar no bitmap display)
 	
 	jr $ra
 
+
+paint_grid_8x8:
+	addi $a0, $zero, 7            # x coordinate of top left corner
+	addi $a1, $zero, 7            # y coordinate of top left corner
+	addi $a2, $zero, 240          # line length
+	addi $a3, $zero, 0x00FFFFFF   # color
+	
+	sw $ra, 0($sp)          # store return adress in stack
+	addi $sp, $sp, -4
+	 
+	grid_while_1:                       # paint each horizontal lize 
+		addi $t1, $a2, 7            # limite = line length + 7 (coordenada do fim da linha)
+		sle $t2, $a1, $t1           # 
+		beq $t2, $zero, grid_end_1  # branch if y > limite
+		jal paint_hline             # paint horizontal line
+		addi $a1, $a1, 30           # y = y + 30 (square length = 29)
+		j grid_while_1               
+	grid_end_1:
+	
+	addi $a1, $zero, 7    # reset y to 0
+	
+	grid_while_2:                       # paint each vertical line
+ 		addi $t0, $a2, 7            # limite = line length + 7 (coordenada do fim da linha)
+		sle $t2, $a0, $t0           # 
+		beq $t2, $zero, grid_end_2  # branch if x > limite
+		jal paint_vline             # paint vertical line
+		addi $a0, $a0, 30           # x = x + 30 (square length = 29)
+		j grid_while_2               
+	grid_end_2:
+	
+	lw $ra, 4($sp)       # get return address from stack 
+	addi $sp, $sp, 4
+	jr $ra               # return
+		
 #versao recursiva: utilizar como modelo para sub-rotinas recursivas
 #paint_vline:
 #  addi $t0, $a0, 0
@@ -1024,5 +1058,7 @@ main:
 	li $s1, 3 #define a incidencia de minas (1 em em cada dez)
 	li $s2, 0x10000000 #define inicio do campo
 	li $s3, 666
+	
+	jal paint_grid
 	
 	jal place_mines_12_12
