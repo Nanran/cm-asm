@@ -14,8 +14,8 @@
 #paint_hline: 39
 #paint_vline: 82
 #paint_paint_dline_direita: 107
-#paint_dline_esquerda: 122
-#paint_square: 148
+#paint_dline_esquerda: 192
+#paint_square: 192
 #fill_square: 170
 #paint_one: 181
 #paint_two: 230
@@ -934,6 +934,92 @@ rand_in_default_range: #rand_in_range(($a0)-1=limite) retorna $v0 = int randomic
 	syscall
 	addi $v0, $a0, 0
 	jr $ra
+	
+paint_unit: #$a0=x, $a1=y
+	addi $t0, $a0, 0
+	addi $t1, $a1, 0
+	
+	sw $ra, 0($sp)
+	addi $sp, $sp, -4
+	
+	jal pos_to_mine_adress 
+	
+	lw $ra, 4($sp)
+	addi $sp, $sp, 4
+	
+	mul $t0, $t0, 30
+	addi $t0, $t0, 8 
+	mul $t1, $t1, 30
+	addi $t1, $t1, 8 #converte a posição para pixels
+	
+	lw $t3, 0($v0) #carrega o valor daquele lugar do mapa
+	
+	sw $ra, 0($sp)
+	addi $sp, $sp, -4
+	
+	sw $t0, 0($sp)
+	sw $t1, -4($sp)
+	sw $t3, -8($sp)
+	sw $ra, -12($sp)
+	addi $sp, $sp, -16
+	
+	addi $a0, $t0, 0
+	addi $a1, $t1, 0
+	addi $a2, $zero, 29
+	addi $a3, $zero, 0x00000000
+	
+	jal fill_square #limpa a area antes de desenhar
+	
+	lw $t0, 16($sp)
+	lw $t1, 12($sp)
+	lw $t3, 8($sp)
+	lw $ra, 4($sp)
+	addi $sp, $sp, 16
+	
+	addi $a0, $t0, 0
+	addi $a1, $t1, 0
+	addi $a2, $zero, 0x000000FF
+	blt $t3, 666, not_mine
+		addi $a2, $zero, 0x00FF0000
+		jal paint_asterisc
+		j paint_unit_end
+	not_mine:
+	bne $t3, 1, not_one
+		jal paint_one
+		j paint_unit_end
+	not_one:
+	bne $t3, 2, not_two
+		jal paint_two
+		j paint_unit_end
+	not_two:
+	bne $t3, 3, not_three
+		jal paint_three
+		j paint_unit_end
+	not_three:
+	bne $t3, 4, not_four
+		jal paint_four
+		j paint_unit_end
+	not_four:
+	bne $t3, 5, not_five
+		jal paint_five
+		j paint_unit_end
+	not_five:
+	bne $t3, 6, not_six
+		jal paint_six
+		j paint_unit_end
+	not_six:
+	bne $t3, 7, not_seven
+		jal paint_seven
+		j paint_unit_end
+	not_seven:
+	bne $t3, 8, not_eight
+		jal paint_eight
+		j paint_unit_end
+	not_eight:
+	paint_unit_end:
+	lw $ra, 4($sp)
+	addi $sp, $sp, 4
+	jr $ra
 
 pos_to_mine_adress: #a0 = x, $a1 = y, $v0 = endereço
 	sll $a0, $a0, 2
@@ -1132,7 +1218,7 @@ populate_field:
 
 main:
 	li $s0, 1337 #define a semente
-	li $s1, 3 #define a incidencia de minas (1 em em cada dez)
+	li $s1, 3 #define a incidencia de minas
 	li $s2, 0x10000000 #define inicio do campo
 	li $s3, 666
 	
@@ -1141,6 +1227,78 @@ main:
 	
 	jal paint_grid_8x8
 	
-	li $a0, 8
-	li $a1, 8
-	jal paint_one
+	#li $a0, 8
+	#li $a1, 8
+	#jal paint_one
+	li $a0, 0
+	li $a1, 0
+	jal paint_unit
+	li $a0, 1
+	li $a1, 0
+	jal paint_unit
+	li $a0, 2
+	li $a1, 0
+	jal paint_unit
+	li $a0, 3
+	li $a1, 0
+	jal paint_unit
+	li $a0, 4
+	li $a1, 0
+	jal paint_unit
+	li $a0, 5
+	li $a1, 0
+	jal paint_unit
+	li $a0, 6
+	li $a1, 0
+	jal paint_unit
+	li $a0, 7
+	li $a1, 0
+	jal paint_unit
+	li $a0, 0
+	li $a1, 1
+	jal paint_unit
+	li $a0, 1
+	li $a1, 1
+	jal paint_unit
+	li $a0, 2
+	li $a1, 1
+	jal paint_unit
+	li $a0, 3
+	li $a1, 1
+	jal paint_unit
+	li $a0, 4
+	li $a1, 1
+	jal paint_unit
+	li $a0, 5
+	li $a1, 1
+	jal paint_unit
+	li $a0, 6
+	li $a1, 1
+	jal paint_unit
+	li $a0, 7
+	li $a1, 1
+	jal paint_unit
+	li $a0, 0
+	li $a1, 2
+	jal paint_unit
+	li $a0, 1
+	li $a1, 2
+	jal paint_unit
+	li $a0, 2
+	li $a1, 2
+	jal paint_unit
+	li $a0, 3
+	li $a1, 2
+	jal paint_unit
+	li $a0, 4
+	li $a1, 2
+	jal paint_unit
+	li $a0, 5
+	li $a1, 2
+	jal paint_unit
+	li $a0, 6
+	li $a1, 2
+	jal paint_unit
+	li $a0, 7
+	li $a1, 2
+	jal paint_unit
