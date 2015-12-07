@@ -223,9 +223,9 @@ paint_one: # paint_one($a0=x,$a1=y,$a2=rgb)
 	addi $t1, $a1, 0
 	addi $t2, $a2, 0
 		
-	addi $a0, $t0, 6
-	addi $a1, $t1, 1
-	addi $a2, $zero, 3
+	addi $a0, $t0, 14
+	addi $a1, $t1, 7
+	addi $a2, $zero, 5
 	addi $a3, $t2, 0
 	
 	sw $t0, 0($sp)
@@ -242,9 +242,9 @@ paint_one: # paint_one($a0=x,$a1=y,$a2=rgb)
   	lw $ra, 4($sp)
   	addi $sp, $sp, 16
  	
- 	addi $a0, $t0, 6
-	addi $a1, $t1, 1
-	addi $a2, $zero, 8
+ 	addi $a0, $t0, 14
+	addi $a1, $t1, 7
+	addi $a2, $zero, 15
 	addi $a3, $t2, 0
  	
  	sw $t0, 0($sp)
@@ -964,7 +964,8 @@ place_mine_or_not: #$a0 = x, $a1 = y
 	end_place_mine:
 	jr $ra
 
-place_mines_12_12: #planta as minas (visualizar no bitmap display)
+
+place_mines_8x8: #planta as minas (visualizar no bitmap display)
 	
 	addi $t1, $zero, 0
 	mines_while_0:
@@ -983,9 +984,9 @@ place_mines_12_12: #planta as minas (visualizar no bitmap display)
 			addi $sp, $sp, 12
 			
 			addi $t0, $t0, 1
-		bne $t0, 12, mines_while_1
+		bne $t0, 8, mines_while_1
 		addi $t1, $t1, 1
-	bne $t1, 12, mines_while_0
+	bne $t1, 8, mines_while_0
 	
 	jr $ra
 
@@ -1022,7 +1023,83 @@ paint_grid_8x8:
 	lw $ra, 4($sp)       # get return address from stack 
 	addi $sp, $sp, 4
 	jr $ra               # return
+
+	
+
+label_block:                  # label_block(x=a0, y=a1)
+	sll $t0, $a1, 3      #
+	add $t0, $t0, $a0    # 
+	sll $t0, $t0, 2      # dslc = 4*(8*y + x)
+	
+	lw $t1, 0x10000000($t0)
+	
+	beq $t1, $s3, label_exit  # branch if block is a mine
+		addi $t2, $zero, 0   # count = 0
 		
+		addi $t3, $t1, -1    # y0 = y-1
+		addi $t4, $t1, 2     # yf = y+2 (limit)
+		label_while_0:
+			beq $t3, $t4, label_end_0    # branch if x0 == xf
+			blt $t3, 0, label_end_1      #  
+			bge $t3, 8, label_end_1      # skip iteration if y0 < 0 or y0 >= 8
+	
+			addi $t5, $t0, -1  # x0 = x-1
+			addi $t6, $t0, 2   # xf = x+2 
+			label_while_1:
+				beq $t5, $t6, label_end_1    # branch if x0 == xf
+				blt $t5, 0, label_continue   #
+				bge $t5, 8, label_continue   # skip iteration if x0 < 0 or x0 >= 8
+			
+				sll $t7, $t3, 3       #
+				add $t7, $t7, $t5     #
+				sll $t7, $t7, 2       # dslc = 4*(8*y0 + x0)
+			
+				lw $t8, 0x10000000($t7)  # 
+			
+				bne $t8, $s3, label_continue  # skip if point at (x0, y0) is not a mine
+					addi $t2, $t2, 1   # add 1 to count if (x0, t0) is a mine
+				label_continue:
+				
+				addi $t5, $t5, 1   # x0 = x0 + 1
+				j label_while_1
+			label_end_1:
+			
+			addi $t3, $t3, 1  # y0 = y0 + 1
+			j label_while_0
+		label_end_0:
+		sw $t2, 0x10000000($t0)  # store count at (x, y)
+	label_exit:
+	jr $ra
+
+
+populate_field:
+	sw $a0, 0($sp)
+	sw $a1, -4($sp)
+	sw $ra, -8($sp)	
+	addi $sp, $sp, -12	
+
+	addi $a1, $zero, 0
+	populate_while_0:
+		beq $a1, 8, populate_end_0
+		
+		addi $a0, $zero, 0
+		populate_while_1:
+			beq $a0, 8, populate_end_1
+			jal label_block
+			addi $a0, $a0, 1
+			j populate_while_1
+		populate_end_1:
+		addi $a1, $a1, 1
+		j populate_while_0
+	populate_end_0:
+	
+	lw $ra, 4($sp)
+	lw $a1, 8($sp)
+	lw $a0, 12($sp)
+	addi $sp, $sp, 12
+	
+	jr $ra
+
 #versao recursiva: utilizar como modelo para sub-rotinas recursivas
 #paint_vline:
 #  addi $t0, $a0, 0
@@ -1059,6 +1136,11 @@ main:
 	li $s2, 0x10000000 #define inicio do campo
 	li $s3, 666
 	
-	jal paint_grid
+	jal place_mines_8x8
+	jal populate_field
 	
-	jal place_mines_12_12
+	jal paint_grid_8x8
+	
+	li $a0, 8
+	li $a1, 8
+	jal paint_one
