@@ -1023,8 +1023,7 @@ paint_unit: #$a0=x, $a1=y
 
 pos_to_mine_adress: #a0 = x, $a1 = y, $v0 = endereço
 	sll $a0, $a0, 2
-	mul $a1, $a1, 12
-	sll $a1, $a1, 2
+	sll $a1, $a1, 5
 	add $v0, $s2, $a0
 	add $v0, $v0, $a1
 	jr $ra
@@ -1122,23 +1121,23 @@ label_block:                  # label_block(x=a0, y=a1)
 	beq $t1, $s3, label_exit  # branch if block is a mine
 		addi $t2, $zero, 0   # count = 0
 		
-		addi $t3, $t1, -1    # y0 = y-1
-		addi $t4, $t1, 2     # yf = y+2 (limit)
+		addi $t3, $a1, -1    # y0 = y-1
+		addi $t4, $a1, 2     # yf = y+2 (limit)
 		label_while_0:
-			beq $t3, $t4, label_end_0    # branch if x0 == xf
+			beq $t3, $t4, label_end_0    # branch if y0 == yf
 			blt $t3, 0, label_end_1      #  
 			bge $t3, 8, label_end_1      # skip iteration if y0 < 0 or y0 >= 8
 	
-			addi $t5, $t0, -1  # x0 = x-1
-			addi $t6, $t0, 2   # xf = x+2 
+			addi $t5, $a0, -1  # x0 = x-1
+			addi $t6, $a0, 2   # xf = x+2 
 			label_while_1:
 				beq $t5, $t6, label_end_1    # branch if x0 == xf
 				blt $t5, 0, label_continue   #
 				bge $t5, 8, label_continue   # skip iteration if x0 < 0 or x0 >= 8
 			
-				sll $t7, $t3, 3       #
-				add $t7, $t7, $t5     #
-				sll $t7, $t7, 2       # dslc = 4*(8*y0 + x0)
+				sll $t7, $t3, 3
+				add $t7, $t7, $t5
+				sll $t7, $t7, 2
 			
 				lw $t8, 0x10000000($t7)  # 
 			
