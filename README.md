@@ -10,11 +10,11 @@
 
 - Gerador de campo minado randomico [DONE]
 
-- Sub-rotina para definir quantas minas cada local vago tem em volta de sí mesmo
+- Sub-rotina para definir quantas minas cada local vago tem em volta de sí mesmo[DONE]
 
-- Sub-rotina para atualizar tela e desenhar o campo minado atual
+- Sub-rotina para atualizar tela e desenhar o campo minado atual[DONE]
 
-- game-loop principal (incluindo E/S)
+- game-loop principal (incluindo E/S) [DONE]
 
 
 [Relátorio]
