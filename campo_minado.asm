@@ -224,7 +224,7 @@ paint_one: # paint_one($a0=x,$a1=y,$a2=rgb)
 	addi $t2, $a2, 0
 		
 	addi $a0, $t0, 14
-	addi $a1, $t1, 7
+	addi $a1, $t1, 6
 	addi $a2, $zero, 5
 	addi $a3, $t2, 0
 	
@@ -243,7 +243,7 @@ paint_one: # paint_one($a0=x,$a1=y,$a2=rgb)
   	addi $sp, $sp, 16
  	
  	addi $a0, $t0, 14
-	addi $a1, $t1, 7
+	addi $a1, $t1, 6
 	addi $a2, $zero, 15
 	addi $a3, $t2, 0
  	
