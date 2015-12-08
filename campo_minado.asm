@@ -935,7 +935,7 @@ rand_in_default_range: #rand_in_range(($a0)-1=limite) retorna $v0 = int randomic
 	addi $v0, $a0, 0
 	jr $ra
 	
-paint_unit: #$a0=x, $a1=y
+paint_unit: #$a0=x, $a1=y #deixa o valor do endereço salvo em $v1
 	addi $t0, $a0, 0
 	addi $t1, $a1, 0
 	
@@ -953,6 +953,7 @@ paint_unit: #$a0=x, $a1=y
 	addi $t1, $t1, 8 #converte a posição para pixels
 	
 	lw $t3, 0($v0) #carrega o valor daquele lugar do mapa
+	addi $v1, $v0, 0
 	
 	sw $ra, 0($sp)
 	addi $sp, $sp, -4
@@ -963,10 +964,11 @@ paint_unit: #$a0=x, $a1=y
 	sw $ra, -12($sp)
 	addi $sp, $sp, -16
 	
-	addi $a0, $t0, 0
-	addi $a1, $t1, 0
-	addi $a2, $zero, 29
-	addi $a3, $zero, 0x00000000
+	addi $a0, $t0, 1
+	addi $a1, $t1, 1
+	addi $a2, $zero, 27
+	
+	addi $a3, $zero, 0x00111111
 	
 	jal fill_square #limpa a area antes de desenhar
 	
@@ -979,7 +981,7 @@ paint_unit: #$a0=x, $a1=y
 	addi $a0, $t0, 0
 	addi $a1, $t1, 0
 	addi $a2, $zero, 0x000000FF
-	blt $t3, 666, not_mine
+	bne $t3, 666, not_mine
 		addi $a2, $zero, 0x00FF0000
 		jal paint_asterisc
 		j paint_unit_end
@@ -1046,6 +1048,7 @@ place_mine_or_not: #$a0 = x, $a1 = y
 		j end_place_mine
 	place_mine:
 		sw $s3, 0($t0)
+		subi $s4, $s4, 1
 	end_place_mine:
 	jr $ra
 
@@ -1215,89 +1218,110 @@ populate_field:
 #  end_1:
 #  jr $ra
 
+
+liberate: #$a0=x, $a1=y
+	bge $a0, 8, end_liberate
+	blt $a0, 0, end_liberate
+	bge $a1, 8, end_liberate
+	blt $a1, 0, end_liberate
+	
+	addi $t0, $a0, 0
+	addi $t1, $t0, 0
+	
+	#sll $a0, $a0, 2
+	#sll $a1, $a1, 5
+	#add $t2, $s2, $a0
+	#add $t2, $t2, $a1
+	
+	#lw $t3, 0($t2)
+	#blt $t3, 0, end_liberate
+	#bgt $t3, 8, end_liberate
+	
+	sw $ra, 0($sp)
+	sw $t0, -4($sp)
+	sw $t1, -8($sp)
+	addi $sp, $sp, -12
+	jal paint_unit
+	lw $ra, 12($sp)
+	lw $t0, 8($sp)
+	lw $t1, 4($sp)
+	addi $sp, $sp, 12
+	
+	addi $t2, $v1, 0
+	
+	#addi $t2, $t0, 0
+	#addi $t3, $t1, 0
+	
+	#sll $t2, $t2, 2
+	#sll $t3, $t3, 5
+	#add $v0, $s2, $t2
+	#add $t2, $v0, $t3
+	
+	lw $t3, 0($t2)
+	li $t5, 0xFFFFFFFF
+	sw $t5, 0($t2)
+	bne $t3, 666, nao_mina
+		li $s7, 0
+		j end_liberate
+	nao_mina:
+		subi $s4, $s4, 1
+	bgt $t3, 0, end_liberate
+	
+	#parte recursiva
+	#addi $t7, $zero, -1
+	#liberate_while_0:
+	#	addi $t6, $zero, -1
+	#	liberate_while_1:
+	#		sw $ra, 0($sp)
+	#		sw $t0, -4($sp)
+	#		sw $t1, -8($sp)
+	#		sw $t6, -12($sp)
+	#		sw $t7, -16($sp)
+	#		addi $sp, $sp, -20
+	#		add $a0, $t0, $t6
+	#		add $a1, $t1, $t7
+	#		jal liberate
+	#		lw $ra, 20($sp)
+	#		lw $t0, 16($sp)
+	#		lw $t1, 12($sp)
+	#		lw $t6, 8($sp)
+	#		lw $t7, 4($sp)
+	#		addi $sp, $sp, 20
+	#		addi $t6, $t6, 1
+	#		blt $t6, 2, liberate_while_1
+	#	addi $t7, $t7, 1
+	#	blt $t7, 2, liberate_while_0
+	end_liberate:
+	jr $ra
+
 main:
 	li $s0, 1337 #define a semente
-	li $s1, 3 #define a incidencia de minas
+	li $s1, 12 #define a incidencia de minas
 	li $s2, 0x10000000 #define inicio do campo
 	li $s3, 666
+	li $s4, 64 #numero de casas sem minas restantes a serem descobertas
+	li $s7, 1 #0 = o jogador perdeu
 	
 	jal place_mines_8x8
 	jal populate_field
 	
 	jal paint_grid_8x8
 	
-	#li $a0, 8
-	#li $a1, 8
-	#jal paint_one
-	li $a0, 0
-	li $a1, 0
-	jal paint_unit
-	li $a0, 1
-	li $a1, 0
-	jal paint_unit
-	li $a0, 2
-	li $a1, 0
-	jal paint_unit
-	li $a0, 3
-	li $a1, 0
-	jal paint_unit
-	li $a0, 4
-	li $a1, 0
-	jal paint_unit
-	li $a0, 5
-	li $a1, 0
-	jal paint_unit
-	li $a0, 6
-	li $a1, 0
-	jal paint_unit
-	li $a0, 7
-	li $a1, 0
-	jal paint_unit
-	li $a0, 0
-	li $a1, 1
-	jal paint_unit
-	li $a0, 1
-	li $a1, 1
-	jal paint_unit
-	li $a0, 2
-	li $a1, 1
-	jal paint_unit
-	li $a0, 3
-	li $a1, 1
-	jal paint_unit
-	li $a0, 4
-	li $a1, 1
-	jal paint_unit
-	li $a0, 5
-	li $a1, 1
-	jal paint_unit
-	li $a0, 6
-	li $a1, 1
-	jal paint_unit
-	li $a0, 7
-	li $a1, 1
-	jal paint_unit
-	li $a0, 0
-	li $a1, 2
-	jal paint_unit
-	li $a0, 1
-	li $a1, 2
-	jal paint_unit
-	li $a0, 2
-	li $a1, 2
-	jal paint_unit
-	li $a0, 3
-	li $a1, 2
-	jal paint_unit
-	li $a0, 4
-	li $a1, 2
-	jal paint_unit
-	li $a0, 5
-	li $a1, 2
-	jal paint_unit
-	li $a0, 6
-	li $a1, 2
-	jal paint_unit
-	li $a0, 7
-	li $a1, 2
-	jal paint_unit
+	main_loop:
+		li $v0, 5
+		syscall
+		addi $a0, $v0, 0
+	
+		li $v0, 5
+		syscall
+		addi $a1, $v0, 0
+		
+		jal liberate
+	
+		beq $s4, 0, game_won
+		beq $s7, 0, end_game
+		j main_loop
+	game_won:
+	#nada ainda
+	end_game:
+    
